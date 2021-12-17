@@ -6,6 +6,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace DiscoBot
 {
@@ -16,6 +17,11 @@ namespace DiscoBot
 
         static void Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.File("logs/DiscoBot.log", rollingInterval: RollingInterval.Day)
+                .WriteTo.Console()
+                .CreateLogger();
+
             new Program().MainAsync().GetAwaiter().GetResult();
         }
 
@@ -32,10 +38,7 @@ namespace DiscoBot
             var services = ConfigureServices();
             _client = services.GetRequiredService<DiscordSocketClient>();
 
-            // Hook into events
-            _client.Log += LogAsync;
-            _client.Ready += ReadyAsync;
-            services.GetRequiredService<CommandService>().Log += LogAsync;
+            services.GetRequiredService<LoggingService>();
 
             await _client.LoginAsync(TokenType.Bot, _config["Discord:BotToken"]);
             await _client.StartAsync();
@@ -47,6 +50,8 @@ namespace DiscoBot
 
         private IServiceProvider ConfigureServices() => new ServiceCollection()
             .AddSingleton(_config)
+            .AddLogging(logging => logging.AddSerilog())
+            .AddSingleton<LoggingService>()
             .AddSingleton<DiscordSocketClient>()
             .AddSingleton<CommandService>()
             .AddSingleton<CommandHandler>()
@@ -55,12 +60,6 @@ namespace DiscoBot
         private static Task LogAsync(LogMessage log)
         {
             Console.WriteLine(log.ToString());
-            return Task.CompletedTask;
-        }
-
-        private Task ReadyAsync()
-        {
-            Console.WriteLine($"Connected as -> [{_client.CurrentUser}]");
             return Task.CompletedTask;
         }
     }
