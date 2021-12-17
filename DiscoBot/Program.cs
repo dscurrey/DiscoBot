@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Threading.Tasks;
+using DiscoBot.Services;
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DiscoBot
 {
     public class Program
     {
-        private readonly DiscordSocketClient _client;
+        private DiscordSocketClient _client;
         private readonly IConfiguration _config;
 
         static void Main(string[] args)
@@ -18,13 +21,6 @@ namespace DiscoBot
 
         public Program()
         {
-            _client = new DiscordSocketClient();
-
-            // Hook into events
-            _client.Log += LogAsync;
-            _client.Ready += ReadyAsync;
-            _client.MessageReceived += MessageReceivedAsync;
-
             var builder = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile(path: "appsettings.json");
@@ -33,11 +29,28 @@ namespace DiscoBot
 
         public async Task MainAsync()
         {
+            var services = ConfigureServices();
+            _client = services.GetRequiredService<DiscordSocketClient>();
+
+            // Hook into events
+            _client.Log += LogAsync;
+            _client.Ready += ReadyAsync;
+            _client.MessageReceived += MessageReceivedAsync;
+
             await _client.LoginAsync(TokenType.Bot, _config["Discord:BotToken"]);
             await _client.StartAsync();
 
+            await services.GetRequiredService<CommandHandler>().InitAsync();
+
             await Task.Delay(-1);
         }
+
+        private IServiceProvider ConfigureServices() => new ServiceCollection()
+            .AddSingleton(_config)
+            .AddSingleton<DiscordSocketClient>()
+            .AddSingleton<CommandService>()
+            .AddSingleton<CommandHandler>()
+            .BuildServiceProvider();
 
         private static Task LogAsync(LogMessage log)
         {
@@ -55,7 +68,6 @@ namespace DiscoBot
         {
             if (message.Author.Id == _client.CurrentUser.Id || message.Author.IsBot)
                 return;
-
             if (message.Content == ".hello")
             {
                 await message.Channel.SendMessageAsync("world!");
