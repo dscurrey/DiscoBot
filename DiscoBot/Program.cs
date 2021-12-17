@@ -1,12 +1,18 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Discord;
+using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
+using NLog;
 
 namespace DiscoBot
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var logger = LogManager.GetCurrentClassLogger();
+            return Task.CompletedTask;
         }
     }
 }
