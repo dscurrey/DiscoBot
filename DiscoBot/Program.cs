@@ -35,7 +35,7 @@ namespace DiscoBot
             // Hook into events
             _client.Log += LogAsync;
             _client.Ready += ReadyAsync;
-            _client.MessageReceived += MessageReceivedAsync;
+            services.GetRequiredService<CommandService>().Log += LogAsync;
 
             await _client.LoginAsync(TokenType.Bot, _config["Discord:BotToken"]);
             await _client.StartAsync();
@@ -58,20 +58,10 @@ namespace DiscoBot
             return Task.CompletedTask;
         }
 
-        private static Task ReadyAsync()
+        private Task ReadyAsync()
         {
-            Console.WriteLine($"Connected as -> [] :)");
+            Console.WriteLine($"Connected as -> [{_client.CurrentUser}]");
             return Task.CompletedTask;
-        }
-
-        private async Task MessageReceivedAsync(SocketMessage message)
-        {
-            if (message.Author.Id == _client.CurrentUser.Id || message.Author.IsBot)
-                return;
-            if (message.Content == ".hello")
-            {
-                await message.Channel.SendMessageAsync("world!");
-            }
         }
     }
 }
