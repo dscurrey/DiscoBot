@@ -41,6 +41,8 @@ namespace DiscoBot.CommandModules
             img.Save(fileName);
 
             await Context.Channel.SendFileAsync(fileName);
+            await Context.Message.DeleteAsync();
+
             File.Delete(fileName);
         }
     }
