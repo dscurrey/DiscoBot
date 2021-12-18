@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Drawing.Text;
 using System.Linq;
 
@@ -35,8 +36,7 @@ namespace DiscoBot.Utils
             var img = new Bitmap(1, 1);
             var drawing = Graphics.FromImage(img);
 
-            var fullTesx = title + text + flavor;
-            var size = drawing.MeasureString(fullTesx, GetItalic());
+            var size = drawing.MeasureString(title + text + flavor, GetItalic());
             var titleSize = drawing.MeasureString(title, GetBold());
             var messageSize = drawing.MeasureString(text, GetRegular());
             var flavorSize = drawing.MeasureString(flavor, GetItalic());
@@ -54,6 +54,42 @@ namespace DiscoBot.Utils
             drawing.DrawString(title, GetBold(), textBrush, 0, 0);
             drawing.DrawString(text, GetRegular(), textBrush, titleSize.Width, 0);
             drawing.DrawString(flavor, GetItalic(), textBrush, titleSize.Width + messageSize.Width, 0);
+            drawing.Save();
+
+            textBrush.Dispose();
+            drawing.Dispose();
+
+            return img;
+        }
+
+        public static Image DrawSimpleDisco(string author, string text)
+        {
+            Enum.TryParse(typeof(Skill), author, true, out var enumSkill);
+            if (enumSkill is not Skill skill)
+                return null;
+            author = SkillsUtil.GetSkillName(skill);
+
+            var img = new Bitmap(1, 1);
+            var drawing = Graphics.FromImage(img);
+
+            author += " - ";
+            var size = drawing.MeasureString(author + text, GetItalic());
+            var titleSize = drawing.MeasureString(author, GetBold());
+            var messageSize = drawing.MeasureString(text, GetRegular());
+
+            img.Dispose();
+            drawing.Dispose();
+
+            var width = titleSize.Width + messageSize.Width;
+
+            img = new Bitmap((int)width, (int)size.Height);
+            drawing = Graphics.FromImage(img);
+            drawing.Clear(Color.DarkSlateGray);
+
+            var textBrush = new SolidBrush(SkillsUtil.GetSkillColour(skill));
+            drawing.DrawString(author, GetBold(), textBrush, 0, 0);
+            textBrush.Color = Color.White;
+            drawing.DrawString(text, GetRegular(), textBrush, titleSize.Width, 0);
             drawing.Save();
 
             textBrush.Dispose();

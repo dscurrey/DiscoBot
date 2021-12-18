@@ -30,6 +30,19 @@ namespace DiscoBot.CommandModules
 
             File.Delete(filename);
         }
+
+        [Command("msg")]
+        public async Task WriteMessageCommand(string author, string msg)
+        {
+            await Context.Channel.TriggerTypingAsync();
+
+            var img = ImageUtils.DrawSimpleDisco(author, msg);
+            var fileName = Guid.NewGuid() + ".jpg";
+            img.Save(fileName);
+
+            await Context.Channel.SendFileAsync(fileName);
+            File.Delete(fileName);
+        }
     }
 }
 
