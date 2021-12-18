@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Drawing.Text;
+using System.Linq;
 
 #pragma warning disable CA1416
 
@@ -8,33 +9,85 @@ namespace DiscoBot.Utils
 {
     public class ImageUtils
     {
-        private static PrivateFontCollection LoadFonts()
+        private static Font GetRegular()
         {
             var collection = new PrivateFontCollection();
             collection.AddFontFile(@"resources\LibreBaskerville-Regular.ttf");
-            collection.AddFontFile(@"resources\LibreBaskerville-Bold.ttf");
-            collection.AddFontFile(@"resources\LibreBaskerville-Italic.ttf");
-            return collection;
+            return new Font(new FontFamily("Libre Baskerville", collection), 36, FontStyle.Bold);
         }
 
-        public static Image DrawSimpleDisco(string text)
+        private static Font GetItalic()
         {
-            var fontCollection = LoadFonts();
+            var collection = new PrivateFontCollection();
+            collection.AddFontFile(@"resources\LibreBaskerville-Italic.ttf");
+            return new Font(new FontFamily("Libre Baskerville", collection), 36, FontStyle.Bold);
+        }
+
+        private static Font GetBold()
+        {
+            var collection = new PrivateFontCollection();
+            collection.AddFontFile(@"resources\LibreBaskerville-Bold.ttf");
+            return new Font(new FontFamily("Libre Baskerville", collection), 36, FontStyle.Bold);
+        }
+
+        public static Image DrawSimpleDiscoWithFlavor(string title, string text, string flavor)
+        {
             var img = new Bitmap(1, 1);
             var drawing = Graphics.FromImage(img);
 
-            var font = new Font(new FontFamily("Libre Baskerville", fontCollection), 36);
-            var textSize = drawing.MeasureString(text, font);
+            var fullTesx = title + text + flavor;
+            var size = drawing.MeasureString(fullTesx, GetItalic());
+            var titleSize = drawing.MeasureString(title, GetBold());
+            var messageSize = drawing.MeasureString(text, GetRegular());
+            var flavorSize = drawing.MeasureString(flavor, GetItalic());
 
             img.Dispose();
             drawing.Dispose();
 
-            img = new Bitmap((int)textSize.Width, (int)textSize.Height);
+            var width = titleSize.Width + messageSize.Width + flavorSize.Width;
+
+            img = new Bitmap((int)width, (int)size.Height);
             drawing = Graphics.FromImage(img);
             drawing.Clear(Color.Gray);
 
             var textBrush = new SolidBrush(Color.White);
-            drawing.DrawString(text, font, textBrush, 0, 0);
+            drawing.DrawString(title, GetBold(), textBrush, 0, 0);
+            drawing.DrawString(text, GetRegular(), textBrush, titleSize.Width, 0);
+            drawing.DrawString(flavor, GetItalic(), textBrush, titleSize.Width + messageSize.Width, 0);
+            drawing.Save();
+
+            textBrush.Dispose();
+            drawing.Dispose();
+
+            return img;
+        }
+
+        public static Image DrawSimpleDisco(string text)
+        {
+            var img = new Bitmap(1, 1);
+            var drawing = Graphics.FromImage(img);
+            var title = "MESSAGE - ";
+            var flavor = "egg";
+
+            var fullTesx = title + text + flavor;
+            var size = drawing.MeasureString(fullTesx, GetItalic());
+            var titleSize = drawing.MeasureString(title, GetBold());
+            var messageSize = drawing.MeasureString(text, GetRegular());
+            var flavorSize = drawing.MeasureString(flavor, GetItalic());
+
+            img.Dispose();
+            drawing.Dispose();
+
+            var width = titleSize.Width + messageSize.Width + flavorSize.Width;
+
+            img = new Bitmap((int)width, (int)size.Height);
+            drawing = Graphics.FromImage(img);
+            drawing.Clear(Color.Gray);
+
+            var textBrush = new SolidBrush(Color.White);
+            drawing.DrawString(title, GetBold(), textBrush, 0, 0);
+            drawing.DrawString(text, GetRegular(), textBrush, titleSize.Width, 0);
+            drawing.DrawString(flavor, GetItalic(), textBrush, titleSize.Width + messageSize.Width, 0);
             drawing.Save();
 
             textBrush.Dispose();

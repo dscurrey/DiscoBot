@@ -12,7 +12,7 @@ namespace DiscoBot.CommandModules
 {
     public class DiscoImageModule : ModuleBase
     {
-        [Command("test")]
+        [Command("write")]
         public async Task TestDrawCommand([Remainder] string args = null)
         {
             await Context.Channel.TriggerTypingAsync();
